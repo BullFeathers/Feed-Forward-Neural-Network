@@ -95,21 +95,50 @@ public ArrayList<Node> inputNodes=null;//list of the output layer nodes.
 	/**
 	 * Trains a neural network with the parameters initialized in the constructor for the number of epochs specified in the instance variable maxEpoch.
 	 * The parameters are stored as attributes of this class, namely learningRate (alpha) and trainingSet.
-	 * Implement stochastic graident descent: update the network weights using the deltas computed after each the error of each training instance is computed.
-	 * An single epoch looks at each instance training set once, so you should update weights n times per epoch if you have n instances in the training set.
+	 * Implement stochastic gradient descent: update the network weights using the deltas computed after each the error of each training instance is computed.
+	 * A single epoch looks at each instance training set once, so you should update weights n times per epoch if you have n instances in the training set.
 	 */
-	
 	public void train()
 	{
-		// TODO: add code here
+		Instance currInstance;
+		double O = 0;
+		double T = 0;
+		
+		Iterator<Instance> trainItr = trainingSet.iterator();
+		Iterator<Node> inputItr = inputNodes.iterator();
+		Iterator<Node> hiddenItr = hiddenNodes.iterator();
+		
+		for (int currEpoch = 0; currEpoch < maxEpoch; currEpoch ++) {
+			while (trainItr.hasNext()) {
+				currInstance = trainItr.next();
+				O = calculateOutputForInstance(currInstance);
+				T = currInstance.output;
+				
+				//compute error for all output units
+				//getMeanSquaredError();  -  ?
 
+				//compute delta for edges to output node, store them
+				while (hiddenItr.hasNext()) {
+					
+				}
+
+				//compute delta for edges to hidden node, store them
+				hiddenItr = hiddenNodes.iterator();
+				while (inputItr.hasNext()) {
+					while (hiddenItr.hasNext()) {
+						
+					}
+				}
+				
+				//update weights for currInstance
+			}
+		}
 	}
+	
 	/**
 	 * Returns the mean squared error of a dataset. That is, the sum of the squared error (T-O) for each instance
 	in the dataset divided by the number of instances in the dataset.
 	 */
-	
-
 	public double getMeanSquaredError(List<Instance> dataset){
 		//TODO: add code here
 		return -1;
