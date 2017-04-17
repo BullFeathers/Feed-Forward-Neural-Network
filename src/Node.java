@@ -55,7 +55,10 @@ public class Node{
 		
 		if(type==2 || type==4)//Not an input or bias node
 		{
-			// TODO: add code here
+			sum = 0.0;
+			for (int i = 0; i < parents.size(); i++) {
+				sum += parents.get(i).weight * parents.get(i).node.getOutput();
+			}
 		}
 	}
 
