@@ -55,17 +55,12 @@ public class Node{
 		
 		if(type==2 || type==4)//Not an input or bias node
 		{
-//			sum = 0.0;
-//			for (int i = 0; i < parents.size(); i++) {
-//				sum += parents.get(i).weight * parents.get(i).node.getOutput();
-//			}
-			
 			Iterator<NodeWeightPair> it = parents.iterator();
 			NodeWeightPair currPair;
-			outputValue = 0.0;
+			sum = 0.0;
 			while (it.hasNext()) {
 				currPair = it.next();
-				outputValue += currPair.weight * currPair.node.getOutput();
+				sum += currPair.weight * currPair.node.getOutput();
 			}
 		}
 	}
@@ -88,14 +83,14 @@ public class Node{
 		}
 		else
 		{
-			//calculate the weighted sum of the inputs into the node and assign it to outputValue
+			//calculate the weighted sum of the inputs into the node and assign it to sum
 			calculateOutput();
 			
 			//compute the ReLU of the sum of the weighted inputs to the current node
-			if (outputValue > 0) {
+			if (sum > 0) {
 				outputValue = 1.0;
 			} else {
-				outputValue = -1.0;
+				outputValue = 0.0;
 			}
 			
 			return outputValue;

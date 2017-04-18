@@ -24,7 +24,6 @@ public ArrayList<Node> inputNodes=null;//list of the output layer nodes.
  	* After calling the constructor the last node of both inputNodes and  
  	* hiddenNodes will be bias nodes. 
  	*/
-	
 	public NNImpl(ArrayList<Instance> trainingSet, int hiddenNodeCount, Double learningRate, int maxEpoch, Double [][]hiddenWeights, Double[] outputWeights)
 	{
 		this.trainingSet=trainingSet;
@@ -81,11 +80,31 @@ public ArrayList<Node> inputNodes=null;//list of the output layer nodes.
 	the appropriate input nodes, percolate them through the network, then return the activation value at the single output
 	node. This is your estimate of y. 
 	 */
-	
 	public double calculateOutputForInstance(Instance inst)
 	{
-		return -1;
-		// TODO: add code here
+		Iterator<Node> inputItr = inputNodes.iterator();
+		Node currInput;
+		Node currHidden;
+		int i = 0;
+		
+		//feed initial values to input nodes
+		while (inputItr.hasNext() && i < inst.attributes.size()) {
+			currInput = inputItr.next();
+			currInput.setInput(inst.attributes.get(i));
+			i ++;
+		}
+		
+		//percolate to hidden nodes
+		Iterator<Node> hiddenItr = hiddenNodes.iterator();
+		while (hiddenItr.hasNext()) {
+			currHidden = hiddenItr.next();
+			currHidden.calculateOutput();
+		}
+		
+		//percolate to output node
+		//outputNode.calculateOutput();
+		
+		return outputNode.getOutput();
 	}
 	
 
@@ -100,37 +119,84 @@ public ArrayList<Node> inputNodes=null;//list of the output layer nodes.
 	 */
 	public void train()
 	{
-		Instance currInstance;
+		Map<Node,Double> deltaIJ;
+		Map<Node,Double> deltaJK;
 		double O = 0;
 		double T = 0;
 		
-		Iterator<Instance> trainItr = trainingSet.iterator();
-		Iterator<Node> inputItr = inputNodes.iterator();
-		Iterator<Node> hiddenItr = hiddenNodes.iterator();
-		
 		for (int currEpoch = 0; currEpoch < maxEpoch; currEpoch ++) {
+			Iterator<Instance> trainItr = trainingSet.iterator();
+			Instance currInstance;
 			while (trainItr.hasNext()) {
 				currInstance = trainItr.next();
 				O = calculateOutputForInstance(currInstance);
 				T = currInstance.output;
 				
 				//compute error for all output units
-				//getMeanSquaredError();  -  ?
+				getMeanSquaredError(trainingSet);
 
-				//compute delta for edges to output node, store them
+				deltaJK = new HashMap<Node,Double>();
+				Iterator<Node> hiddenItr = hiddenNodes.iterator();
+				Node currHidden;
+				double delta = 0;
+				//compute delta for edges from hidden to output (deltaJK) node => deltaJK
 				while (hiddenItr.hasNext()) {
-					
+					currHidden = hiddenItr.next();
+					delta = learningRate * currHidden.getSum() * (outputNode.getOutput() - currHidden.getOutput());
+					deltaJK.put(currHidden, delta);
 				}
 
-				//compute delta for edges to hidden node, store them
+				deltaIJ = new HashMap<Node,Double>();
+				Iterator<Node> inputItr = inputNodes.iterator();
+				Node currInput;
 				hiddenItr = hiddenNodes.iterator();
+				int j = 0;
+				//compute delta for edges from input to hidden (deltaIJ) nodes => deltaIJ
 				while (inputItr.hasNext()) {
+					currInput = inputItr.next();
+					delta = 0;
 					while (hiddenItr.hasNext()) {
-						
+						currHidden = hiddenItr.next();
+						//delta = learningRate * currHidden.getSum() * (outputNode.getOutput() - currHidden.getOutput());
+						if (deltaJK.containsKey(currHidden)) {
+							delta += currHidden.getOutput() * (outputNode.getOutput() - currHidden.getOutput());
+						}
+						j ++;
+					}
+					delta = learningRate * currInput.getOutput() * delta;
+					deltaIJ.put(currInput, delta);
+				}
+				
+				//update weights in network for currInstance
+				
+				//Update input weights through value pairs stored in hidden nodes.
+				hiddenItr = hiddenNodes.iterator();
+				Iterator<NodeWeightPair> parentItr;
+				NodeWeightPair currPairent;
+				while (hiddenItr.hasNext()) {
+					currHidden = hiddenItr.next();
+					
+					if (currHidden.parents != null) {
+						parentItr = currHidden.parents.iterator();
+						while (parentItr.hasNext()) {
+							currPairent = parentItr.next();
+							if (deltaIJ.containsKey(currPairent.node)) {
+								currPairent.weight = currPairent.weight + deltaIJ.get(currPairent.node);
+							}
+						}
 					}
 				}
 				
-				//update weights for currInstance
+				//Update hidden weights through value pairs stored in the output node.
+				parentItr = outputNode.parents.iterator();
+				while (parentItr.hasNext()) {
+					if (outputNode.parents != null) {
+						currPairent = parentItr.next();
+						if (deltaJK.containsKey(currPairent.node)) {
+							currPairent.weight = currPairent.weight + deltaJK.get(currPairent.node);
+						}
+					}
+				}
 			}
 		}
 	}
@@ -140,7 +206,14 @@ public ArrayList<Node> inputNodes=null;//list of the output layer nodes.
 	in the dataset divided by the number of instances in the dataset.
 	 */
 	public double getMeanSquaredError(List<Instance> dataset){
-		//TODO: add code here
-		return -1;
+		Iterator<Instance> itr = dataset.iterator();
+		Instance currInstance;
+		double sum = 0;
+		
+		while (itr.hasNext()) {
+			currInstance = itr.next();
+			sum += (currInstance.output - calculateOutputForInstance(currInstance)) * (currInstance.output - calculateOutputForInstance(currInstance));
+		}
+		return sum;
 	}
 }
